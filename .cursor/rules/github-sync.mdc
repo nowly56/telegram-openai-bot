@@ -1,0 +1,11 @@
+---
+description: Keep Telegram bot changes synchronized with the GitHub repository
+alwaysApply: true
+---
+
+# GitHub synchronization
+
+- The canonical remote is `https://github.com/nowly56/telegram-openai-bot.git` on `main`.
+- When making project changes, verify them, commit the intended files, and push to `origin/main`.
+- Never commit `.env`, API keys, bot tokens, `data/`, or anything under `sources/`.
+- Never force-push. If authentication, network access, or a merge conflict blocks the push, report it clearly.
