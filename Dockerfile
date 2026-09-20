@@ -1,9 +1,9 @@
-FROM node:22-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
 COPY package.json ./
-COPY bot.mjs reports.mjs bot_prompt.txt ./
+COPY bot.mjs reports.mjs storage.mjs memory.mjs schedule-language.mjs delivery.mjs bot_prompt.txt ./
 
 RUN mkdir -p /data
 

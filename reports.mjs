@@ -1,5 +1,5 @@
-import { readFileSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { deliverReport, resolveDelivery } from './delivery.mjs';
 
 export function namePattern(name) {
   return new RegExp(`(^|[^\\p{L}\\p{N}_])${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[^\\p{L}\\p{N}_])`, 'giu');
@@ -29,16 +29,13 @@ export function nextRun(kind, time, zone, weekday = 1, now = Date.now()) {
 }
 
 export class Reports {
-  constructor(file) {
-    this.file = file;
-    try { this.chats = JSON.parse(readFileSync(file, 'utf8')); }
-    catch (e) { if (e.code !== 'ENOENT') throw e; this.chats = {}; }
+  constructor(store) {
+    this.store = store;
+    this.chats = store.getState('reports', {});
   }
   chat(id) { return this.chats[id] ||= { members: {}, jobs: {} }; }
   save() {
-    mkdirSync(dirname(this.file), { recursive: true });
-    writeFileSync(this.file + '.tmp', JSON.stringify(this.chats));
-    renameSync(this.file + '.tmp', this.file);
+    this.store.setState('reports', this.chats);
   }
   observe(id, from) {
     if (!from || from.is_bot) return;
@@ -53,6 +50,31 @@ export class Reports {
     this.chat(id).jobs[kind] = { kind, time, zone, day, due, since: now };
     this.save();
   }
+  propose(id, userId, proposal, now = Date.now()) {
+    const c = this.chat(id);
+    c.proposal = { ...proposal, userId: String(userId), token: randomUUID().slice(0, 8), expires: now + 600000 };
+    this.save();
+    return c.proposal;
+  }
+  confirm(id, userId, token, now = Date.now()) {
+    const c = this.chat(id), p = c.proposal;
+    if (!p || p.token !== token || p.userId !== String(userId) || p.expires < now) throw new Error('Подтверждение устарело или принадлежит другому администратору');
+    if (Object.values(c.jobs).some(j => j.pending)) throw new Error('Сначала завершите отправку текущего отчёта');
+    const jobs = p.jobs.map(j => ({ ...j, due: nextRun(j.kind, j.time, j.zone, j.day, now), since: now }));
+    if (p.reset) {
+      for (const m of Object.values(c.members)) m.rating = 5;
+      for (const j of Object.values(c.jobs)) j.since = now;
+    }
+    for (const j of jobs) c.jobs[j.kind] = j;
+    delete c.proposal;
+    this.save();
+  }
+  resolve(id, kind, action) {
+    const job = this.chat(id).jobs[kind];
+    resolveDelivery(job?.pending, action);
+    delete job.retryAt;
+    this.save();
+  }
   async tick(history, generate, send, now = Date.now()) {
     for (const [id, c] of Object.entries(this.chats)) {
       for (const job of Object.values(c.jobs)) {
@@ -60,11 +82,19 @@ export class Reports {
         try {
           // Freeze the report and rating changes before delivery: retries do not regenerate it.
           if (!job.pending) {
-            const rows = (history.get(id) || []).filter(e => e.role === 'user' && e.at >= job.since && e.at < job.due && e.userId);
+            const rows = history.period(id, job.since, job.due);
             job.pending = await generate(c, job, rows);
             this.save();
           }
-          await send(id, job.pending.text);
+          job.pending.id ||= randomUUID().slice(0, 8);
+          if (!await deliverReport(id, job.pending, () => this.save(), send)) {
+            if (!job.pending.noticeAttempted) {
+              job.pending.noticeAttempted = true;
+              this.save();
+              await send(id, `Доставка части отчёта ${job.pending.id} не подтверждена из-за сбоя связи. Автоповтор приостановлен.\nЕсли часть получена: /reports delivered ${job.kind}\nЕсли не получена: /reports retry ${job.kind} (возможен дубль)\n/reports status — подробности.`);
+            }
+            continue;
+          }
           if (job.kind === 'weekly') for (const [uid, rating] of Object.entries(job.pending.ratings)) {
             if (c.members[uid]) c.members[uid].rating = rating;
           }

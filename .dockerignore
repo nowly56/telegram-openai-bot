@@ -2,6 +2,9 @@
 .git
 .gitignore
 data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 node_modules
 npm-debug.log*
 README.md
