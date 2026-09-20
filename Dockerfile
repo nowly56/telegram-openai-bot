@@ -3,7 +3,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package.json ./
-COPY bot.mjs bot_prompt.txt ./
+COPY bot.mjs reports.mjs bot_prompt.txt ./
 
 RUN mkdir -p /data
 
