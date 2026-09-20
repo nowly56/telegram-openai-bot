@@ -1,0 +1,13 @@
+{
+  "name": "telegram-openai-group-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node bot.mjs",
+    "check": "node --check bot.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
