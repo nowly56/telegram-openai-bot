@@ -9,7 +9,7 @@ Railway запускает проект как постоянный сервис
 ```text
 TELEGRAM_BOT_TOKEN=...
 OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5.6-sol
+OPENAI_MODEL=gpt-6-luna
 BOT_NAME=Роберт
 BOT_SYSTEM_PROMPT_FILE=bot_prompt.txt
 CONTEXT_FILE=/data/chat-context.json
