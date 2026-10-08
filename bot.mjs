@@ -12,7 +12,7 @@ loadDotEnv();
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const MODEL = process.env.OPENAI_MODEL || "gpt-6-luna";
+const MODEL = process.env.OPENAI_MODEL || "gpt-6.1-sol";
 const BOT_NAME = process.env.BOT_NAME || "Роберт";
 const CONTEXT_FILE = process.env.CONTEXT_FILE || "data/chat-context.json";
 const SYSTEM_PROMPT = loadSystemPrompt();

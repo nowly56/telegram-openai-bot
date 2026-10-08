@@ -1,6 +1,6 @@
 # Telegram-бот с OpenAI API
 
-Бот работает через Telegram long polling и OpenAI Responses API. По умолчанию используется `gpt-6-luna`, экономичная модель OpenAI для задач с большим количеством запросов. Сторонние npm-пакеты не нужны. Требуется Node.js 24+: используется встроенный SQLite (`node:sqlite`, в Node 24 может выводиться ExperimentalWarning).
+Бот работает через Telegram long polling и OpenAI Responses API. По умолчанию используется `gpt-6.1-sol`. Сторонние npm-пакеты не нужны. Требуется Node.js 24+: используется встроенный SQLite (`node:sqlite`, в Node 24 может выводиться ExperimentalWarning).
 
 ## Запуск
 
