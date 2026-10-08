@@ -1,11 +1,17 @@
 // Loaded only by the offline child-process integration test. Never copied into Docker.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 const sent = [];
 let step = 0;
 const base = { chat: { id: -100, type: 'supergroup' }, from: { id: 7, first_name: 'Иван' }, date: Math.floor(Date.now() / 1000) };
 globalThis.fetch = async (url, options) => {
   const body = JSON.parse(options.body);
   let result;
-  if (url === 'https://api.openai.com/v1/responses') return { ok: true, json: async () => ({ output_text: 'Тестовый ответ' }) };
+  if (url === 'https://api.openai.com/v1/responses') {
+    assert.equal(body.input[0].role, 'developer');
+    assert.equal(body.input[0].content, readFileSync(new URL('../bot_prompt.txt', import.meta.url), 'utf8').trim());
+    return { ok: true, json: async () => ({ output_text: 'Тестовый ответ' }) };
+  }
   if (!url.startsWith('https://api.telegram.org/botTEST/')) throw new Error('Unexpected network access blocked');
   const method = url.split('/').at(-1);
   switch (method) {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node bot.mjs",
-    "check": "node --check bot.mjs && node --check reports.mjs && node --check storage.mjs && node --check memory.mjs && node --check schedule-language.mjs && node --check delivery.mjs",
+    "check": "node --check bot.mjs && node --check reports.mjs && node --check storage.mjs && node --check memory.mjs && node --check schedule-language.mjs && node --check delivery.mjs && node --check prompt.mjs",
     "test": "node --test"
   },
   "engines": {

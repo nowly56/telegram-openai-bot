@@ -7,6 +7,7 @@ import { Memory } from './memory.mjs';
 import { parseSchedule } from './schedule-language.mjs';
 import { splitText } from './delivery.mjs';
 import { join } from 'node:path';
+import { loadSystemPrompt } from './prompt.mjs';
 
 loadDotEnv();
 
@@ -15,7 +16,8 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MODEL = process.env.OPENAI_MODEL || "gpt-6.1-sol";
 const BOT_NAME = process.env.BOT_NAME || "Роберт";
 const CONTEXT_FILE = process.env.CONTEXT_FILE || "data/chat-context.json";
-const SYSTEM_PROMPT = loadSystemPrompt();
+const promptConfig = loadSystemPrompt();
+const SYSTEM_PROMPT = promptConfig.text;
 
 if (!BOT_TOKEN || !OPENAI_API_KEY) {
   console.error(
@@ -115,21 +117,6 @@ function loadDotEnv() {
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
   }
-}
-
-function loadSystemPrompt() {
-  const promptFile = process.env.BOT_SYSTEM_PROMPT_FILE;
-  if (promptFile) {
-    try {
-      return readFileSync(promptFile, "utf8").trim();
-    } catch (error) {
-      if (error?.code !== "ENOENT") throw error;
-    }
-  }
-  return (
-    process.env.BOT_SYSTEM_PROMPT ||
-    "Ты дружелюбный помощник в Telegram-группе. Отвечай по-русски, если пользователь не попросил другой язык. Пиши ясно и по делу."
-  );
 }
 
 function appendHistory(chatId, entry) {
@@ -379,6 +366,7 @@ async function poll() {
 async function main() {
   botInfo = await telegram("getMe");
   console.log(`Бот @${botInfo.username} запущен. Модель: ${MODEL}`);
+  console.log(`System prompt: ${promptConfig.source}; sha256=${promptConfig.hash}; chars=${SYSTEM_PROMPT.length}`);
   if (!botInfo.can_read_all_group_messages) console.warn('Privacy Mode включён: обращения по имени могут не доходить. Отключите /setprivacy в BotFather и повторно добавьте бота в группу.');
   await telegram("setMyCommands", {
     commands: [

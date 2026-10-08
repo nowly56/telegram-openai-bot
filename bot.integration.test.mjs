@@ -12,7 +12,7 @@ test('bot handles punctuation, reply suppression, admin confirmation and SQLite 
   try {
     const child = spawnSync(process.execPath, ['--import', './test-support/fake-network.mjs', 'bot.mjs'], {
       cwd: import.meta.dirname, encoding: 'utf8', timeout: 15000,
-      env: { ...process.env, TELEGRAM_BOT_TOKEN: 'TEST', OPENAI_API_KEY: 'TEST', DATABASE_FILE: join(dir, 'bot.sqlite'), CONTEXT_FILE: join(dir, 'legacy.json'), BOT_NAME: 'Роберт', BOT_SYSTEM_PROMPT_FILE: join(dir, 'none.txt'), BOT_SYSTEM_PROMPT: 'Test assistant' },
+      env: { ...process.env, TELEGRAM_BOT_TOKEN: 'TEST', OPENAI_API_KEY: 'TEST', DATABASE_FILE: join(dir, 'bot.sqlite'), CONTEXT_FILE: join(dir, 'legacy.json'), BOT_NAME: 'Роберт', BOT_SYSTEM_PROMPT_FILE: 'bot_prompt.txt', BOT_SYSTEM_PROMPT: 'This must not override the file' },
     });
     assert.equal(child.status, 0, child.stderr);
     const sent = JSON.parse(child.stdout.match(/TEST_SENT=(.*)/)[1]);
