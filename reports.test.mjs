@@ -15,6 +15,15 @@ test('Russian name boundaries include punctuation but not other names', () => {
   for (const text of ['Роберт, привет', 'Роберт!', 'роберт?', 'Привет, Роберт.', 'Роберт']) assert.ok(namePattern('Роберт').test(text), text);
   for (const text of ['Роберто', 'Роберта', 'СуперРоберт', 'Роберт_123']) assert.ok(!namePattern('Роберт').test(text), text);
 });
+test('name tolerates one typo and any letter case', () => {
+  for (const text of ['роберт, привет', 'РОБЕРТ!', 'рОбЕрТ', 'робет, привет', 'робрет!', 'робертт?', 'раберт', 'Привет, робррт.']) {
+    assert.ok(namePattern('Роберт').test(text), text);
+    assert.ok(!namePattern('Роберт').test(text.replace(namePattern('Роберт'), ' ')), text);
+  }
+  for (const text of ['привет', 'работа', 'роб', 'робот', 'суперробет', 'робет_123', 'робет123']) assert.ok(!namePattern('Роберт').test(text), text);
+  assert.ok(!namePattern('Мира').test('мираа'));
+});
+
 test('daily and weekly schedule use the requested timezone', () => {
   const now = Date.parse('2026-09-20T09:00:00Z');
   assert.equal(nextRun('daily', '10:00', 'Europe/Moscow', 1, now), Date.parse('2026-09-21T07:00:00Z'));

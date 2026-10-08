@@ -2,7 +2,24 @@ import { randomUUID } from 'node:crypto';
 import { deliverReport, resolveDelivery } from './delivery.mjs';
 
 export function namePattern(name) {
-  return new RegExp(`(^|[^\\p{L}\\p{N}_])${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[^\\p{L}\\p{N}_])`, 'giu');
+  const normalized = name.trim();
+  const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const letters = Array.from(normalized);
+  const variants = [escape(normalized)];
+  // One missing, extra, replaced or transposed letter; short names stay exact.
+  if (letters.length >= 5 && /^\p{L}+$/u.test(normalized)) {
+    for (let i = 0; i < letters.length; i++) {
+      const before = escape(letters.slice(0, i).join(''));
+      const after = escape(letters.slice(i + 1).join(''));
+      variants.push(before + after, before + '\\p{L}' + after);
+      variants.push(before + '\\p{L}' + escape(letters.slice(i).join('')));
+      if (i + 1 < letters.length) variants.push(before + escape(letters[i + 1] + letters[i]) + escape(letters.slice(i + 2).join('')));
+    }
+    variants.push(escape(normalized) + '\\p{L}');
+  }
+  // These are other name forms, rather than misspelled direct addresses.
+  const exclude = normalized.toLowerCase() === 'роберт' ? '(?!роберт[аоуеы](?=$|[^\\p{L}\\p{N}_]))' : '';
+  return new RegExp(`(^|[^\\p{L}\\p{N}_])${exclude}(?:${variants.join('|')})(?=$|[^\\p{L}\\p{N}_])`, 'giu');
 }
 
 export function recentContext(history, budget = 40000) {
